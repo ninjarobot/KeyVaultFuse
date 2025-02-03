@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <GenerateProgramFile>false</GenerateProgramFile>
+    <NoWarn>FS0009,FS0020</NoWarn>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="FuseDelegates.fs" />
+    <Compile Include="KeyVaultOperationTests.fs" />
+    <Compile Include="Main.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Expecto" Version="10.*" />
+    <PackageReference Include="Moq" Version="4.20.72" />
+    <PackageReference Include="YoloDev.Expecto.TestSdk" Version="0.*" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\KeyVaultFuse\KeyVaultFuse.fsproj" />
+  </ItemGroup>
+</Project>
