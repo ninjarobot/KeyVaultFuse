@@ -27,3 +27,10 @@ jobs:
       run: dotnet build -warnaserror --no-restore
     - name: Test
       run: dotnet test --no-build --verbosity normal
+    - name: Publish
+      run: dotnet publish -c Release -r linux-arm64 -o ./bin/publish/linux-arm64 --no-restore --no-build
+    - name: Archive
+      uses: actions/upload-artifact@v2
+      with:
+        name: dotnet-linux-arm64
+        path: ./bin/publish/linux-arm64
