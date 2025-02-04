@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="FuseMocks.fs" />
     <Compile Include="FuseDelegates.fs" />
     <Compile Include="KeyVaultOperationTests.fs" />
     <Compile Include="Main.fs" />

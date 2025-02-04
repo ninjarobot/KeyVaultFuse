@@ -8,6 +8,7 @@ open KeyVaultFuse.Fuse
 open KeyVaultFuse.Libc
 open KeyVaultFuse.Stat
 open Expecto
+open FuseMocks
 
 module Mocks =
 
@@ -90,7 +91,7 @@ let tests =
         "FuseDelegates"
         [ 
             test "getRootDirAttributes" {
-                let fuseOperations = KeyVaultFuse.Mocks.fuseOps
+                let fuseOperations = Mocks.fuseOps
                 let getAttr: GetAttrDelegate =
                     Marshal.GetDelegateForFunctionPointer fuseOperations.getattr
                 let statPtr: nativeptr<Stat> = NativePtr.stackalloc 1
@@ -103,7 +104,7 @@ let tests =
                 Expect.equal (int32 stat.st_mode &&& 0o0755) 0o0755 "Expected executable dir 0755"
             }
             test "getSubDirAttributes" {
-                let fuseOperations = KeyVaultFuse.Mocks.fuseOps
+                let fuseOperations = Mocks.fuseOps
                 let getAttr: GetAttrDelegate =
                     Marshal.GetDelegateForFunctionPointer fuseOperations.getattr
                 let statPtr: nativeptr<Stat> = NativePtr.stackalloc 1
@@ -116,7 +117,7 @@ let tests =
                 Expect.equal (int32 stat.st_mode &&& 0o0755) 0o0755 "Expected executable dir 0755"
             }
             test "getFileAttributes" {
-                let fuseOperations = KeyVaultFuse.Mocks.fuseOps
+                let fuseOperations = Mocks.fuseOps
                 let getAttr: GetAttrDelegate =
                     Marshal.GetDelegateForFunctionPointer fuseOperations.getattr
                 let statPtr: nativeptr<Stat> = NativePtr.stackalloc 1
@@ -130,7 +131,7 @@ let tests =
                 Expect.equal (int32 stat.st_mode &&& 0o0444) 0o0444 "Expected read only file 0444"
             }
             test "readRootDir" {
-                let fuseOperations = KeyVaultFuse.Mocks.fuseOps
+                let fuseOperations = Mocks.fuseOps
                 let readDir: ReadDirDelegate =
                     Marshal.GetDelegateForFunctionPointer fuseOperations.readdir
                 let nodeNames = ResizeArray()
@@ -142,7 +143,7 @@ let tests =
                 Expect.containsAll nodeNames [ "."; ".."; "secrets"; "certificates"; "whatevs" ] "Expected all nodes to be present"
             }
             test "readSubDir" {
-                let fuseOperations = KeyVaultFuse.Mocks.fuseOps
+                let fuseOperations = Mocks.fuseOps
                 let readDir: ReadDirDelegate =
                     Marshal.GetDelegateForFunctionPointer fuseOperations.readdir
                 let nodeNames = ResizeArray()
@@ -154,7 +155,7 @@ let tests =
                 Expect.containsAll nodeNames [ "."; ".."; "bigcert" ] "Expected all nodes to be present"
             }
             test "readSmallFile" {
-                let fuseOperations = KeyVaultFuse.Mocks.fuseOps
+                let fuseOperations = Mocks.fuseOps
                 let read: ReadDelegate =
                     Marshal.GetDelegateForFunctionPointer fuseOperations.read
                 let buffer : nativeptr<byte> = NativePtr.stackalloc 1024
@@ -167,7 +168,7 @@ let tests =
                 Expect.equal contentStr "Hello, world!" "Expected file content to be 'Hello, world!'"
             }
             test "readLargeFile" {
-                let fuseOperations = KeyVaultFuse.Mocks.fuseOps
+                let fuseOperations = Mocks.fuseOps
                 let read: ReadDelegate =
                     Marshal.GetDelegateForFunctionPointer fuseOperations.read
                 let buffer : nativeptr<byte> = NativePtr.stackalloc 1024
