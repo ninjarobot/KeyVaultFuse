@@ -29,7 +29,7 @@ jobs:
       run: dotnet test --no-build --verbosity normal
     - name: Publish
       working-directory: ./src/dotnet/KeyVaultFuse
-      run: dotnet publish -c Release -r linux-arm64 -o ./bin/publish/linux-arm64 --no-restore --no-build
+      run: dotnet publish -c Release -r linux-arm64 -o ./bin/publish/linux-arm64
     - name: Archive
       uses: actions/upload-artifact@v4
       with:
