@@ -159,3 +159,6 @@ module Fuse =
             val mutable copy_file_range: nativeint
             val mutable lseek: nativeint
         end
+
+    [<DllImport("libfuse3.so", CallingConvention = CallingConvention.Cdecl)>]
+    extern int fuse_main_real(int argc, string[] argv, IntPtr op, int64 size, IntPtr private_data)
