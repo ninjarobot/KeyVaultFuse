@@ -27,11 +27,19 @@ jobs:
       run: dotnet build -warnaserror --no-restore
     - name: Test
       run: dotnet test --no-build --verbosity normal
-    - name: Publish
+    - name: Publish arm64
       working-directory: ./src/dotnet/KeyVaultFuse
       run: dotnet publish -c Release -r linux-arm64 -o ./bin/publish/linux-arm64
-    - name: Archive
+    - name: Archive arm64
       uses: actions/upload-artifact@v4
       with:
-        name: dotnet-linux-arm64
-        path: ./bin/publish/linux-arm64
+        name: linux-arm64
+        path: ./src/dotnet/KeyVaultFuse/bin/publish/linux-arm64
+    - name: Publish x64
+      working-directory: ./src/dotnet/KeyVaultFuse
+      run: dotnet publish -c Release -r linux-x64 -o ./bin/publish/linux-x64
+    - name: Archive x64
+      uses: actions/upload-artifact@v4
+      with:
+        name: linux-x64
+        path: ./src/dotnet/KeyVaultFuse/bin/publish/linux-x64
