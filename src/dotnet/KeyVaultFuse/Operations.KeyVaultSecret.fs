@@ -155,7 +155,8 @@ type KeyVaultSecretFuse =
 
     static let secretsGetAttributesDelegateInstance = 
         Fuse.GetAttrDelegate(fun (path:string) statPtr fileInfoPtr ->
-            System.Diagnostics.Debug.WriteLine("Getting attributes... at '{0}'", path)
+            let msg = String.Format("Getting attributes... at '{0}'", path)
+            fuse_log(fuse_log_level.FUSE_LOG_INFO, msg)
             NativePtr.clear statPtr
             try
                 match secretsGetAttributes secretClient path with
@@ -165,13 +166,15 @@ type KeyVaultSecretFuse =
                 | None ->
                     -Errors.ENOENT
             with ex ->
-                System.Console.Error.WriteLine("Error getting attributes for '{0}': {1}", path, ex)
-                -Errors.ENONET
+                let msg = String.Format("Error getting attributes for '{0}': {1}", path, ex)
+                fuse_log(fuse_log_level.FUSE_LOG_ERR, msg)
+                -Errors.ENOENT
         )
 
     static let secretsReadDirDelegateInstance =
         ReadDirDelegate(fun path buffer fillerPtr offset fileInfo flags -> 
-            System.Diagnostics.Debug.WriteLine("Reading directory '{0}'", path)
+            let msg = String.Format("Reading directory at '{0}'", path)
+            fuse_log(fuse_log_level.FUSE_LOG_INFO, msg)
             let filler = Marshal.GetDelegateForFunctionPointer<FuseFillDirDelegate>(fillerPtr)
             let FUSE_FILL_DIR_DEFAULTS = 0
             try
@@ -179,8 +182,9 @@ type KeyVaultSecretFuse =
                 |> List.iter(fun file -> filler.Invoke(buffer, file, NativePtr.nullPtr<Stat>, 0L, FUSE_FILL_DIR_DEFAULTS) |> ignore)
                 0
             with ex ->
-                System.Console.Error.WriteLine("Error reading directory '{0}': {1}", path, ex)
-                -Errors.ENONET
+                let msg = String.Format("Error reading directory '{0}': {1}", path, ex)
+                fuse_log(fuse_log_level.FUSE_LOG_ERR, msg)
+                -Errors.ENOENT
         )
 
     static let secretsReadFileDelegateInstance =
@@ -206,14 +210,22 @@ type KeyVaultSecretFuse =
                 int(size)
             with ex ->
                 System.Console.Error.WriteLine("Error reading file '{0}': {1}", path, ex)
-                -Errors.ENONET
+                -Errors.ENOENT
         )
-
+    
+    static let initDelegateInstance =
+        InitDelegate(fun connPtr configPtr -> 
+            let fuseConnInfo = NativePtr.read connPtr
+            let mutable fuseConfig = NativePtr.read configPtr
+            fuseConfig.kernel_cache <- 1
+            fuseConfig |> NativePtr.write configPtr
+        )
     static let fuseOps = 
         fuse_operations(
             getattr = Marshal.GetFunctionPointerForDelegate<_>(secretsGetAttributesDelegateInstance),
             readdir = Marshal.GetFunctionPointerForDelegate<_>(secretsReadDirDelegateInstance),
-            read = Marshal.GetFunctionPointerForDelegate<_>(secretsReadFileDelegateInstance)
+            read = Marshal.GetFunctionPointerForDelegate<_>(secretsReadFileDelegateInstance),
+            init = Marshal.GetFunctionPointerForDelegate<_>(initDelegateInstance)
         )
 
     static member SecretClient

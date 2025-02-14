@@ -160,5 +160,20 @@ module Fuse =
             val mutable lseek: nativeint
         end
 
-    [<DllImport("libfuse3.so", CallingConvention = CallingConvention.Cdecl)>]
+    [<DllImport("libfuse3.so.3", CallingConvention = CallingConvention.Cdecl)>]
     extern int fuse_main_real(int argc, string[] argv, IntPtr op, int64 size, IntPtr private_data)
+
+    type fuse_log_level =
+        | FUSE_LOG_EMERG = 0
+        | FUSE_LOG_ALERT = 1
+        | FUSE_LOG_CRIT = 2
+        | FUSE_LOG_ERR = 3
+        | FUSE_LOG_WARNING = 4
+        | FUSE_LOG_NOTICE = 5
+        | FUSE_LOG_INFO = 6
+        | FUSE_LOG_DEBUG = 7
+
+    //[<DllImport("libfuse3.so.3", CallingConvention = CallingConvention.Cdecl)>]
+    //extern void fuse_log(fuse_log_level level, string fmt);
+    let fuse_log(level, fmt:string) =
+        System.Console.WriteLine(fmt)

@@ -22,21 +22,22 @@ module Program =
         else
 
             let printStrArr (arr:string array) =
-                arr |> Array.iter (fun s -> System.Console.WriteLine("\t{0}", s))
+                arr |> Array.iter (fun s -> fuse_log(fuse_log_level.FUSE_LOG_INFO, String.Format("\t{0}", s)))
 
-            System.Console.WriteLine("Configuring FUSE...")
+            fuse_log(fuse_log_level.FUSE_LOG_INFO, "Configuring FUSE...")
             let fuseOpPtr = NativePtr.stackalloc<fuse_operations>1
             let ret =
                 if NativePtr.isNullPtr fuseOpPtr then
-                    System.Console.Error.WriteLine("Failed to allocate memory for FUSE operations.")
+                    fuse_log(fuse_log_level.FUSE_LOG_ERR, "Failed to allocate memory for FUSE operations.")
                     -1
                 else
                     let fuseOpSize = Marshal.SizeOf<fuse_operations>() |> uint32
                     NativePtr.initBlock fuseOpPtr 0uy fuseOpSize
                     // allow_other option enables non-root access to the filesystem
                     //let args = [| "KeyVaultFuse"; "-o"; "allow_other"; "-d"; "-f"; "/kvfs" |]
-                    System.Console.WriteLine("Starting FUSE... with args:")
+                    fuse_log(fuse_log_level.FUSE_LOG_INFO, "Starting FUSE... with args:")
                     args |> printStrArr
+                    fuse_log(fuse_log_level.FUSE_LOG_INFO, String.Format("Mounting to: {0}", args[0]))
                     let vaultUri =
                         match Uri.TryCreate(args[0], UriKind.Absolute) with
                         | true, vaultUri -> vaultUri
@@ -47,6 +48,7 @@ module Program =
                             else
                                 uriBuilder.Host <- args[0] + ".vault.azure.net"
                             uriBuilder.Uri
+                    fuse_log(fuse_log_level.FUSE_LOG_INFO, String.Format("Vault URI: {0}", vaultUri))
                     use kvCache = new CachePolicy.KeyVaultCache()
                     let secretClientOptions = SecretClientOptions();
                     // Unless cache is disabled, add the cache policy to the secret client options.
@@ -57,5 +59,5 @@ module Program =
                     KeyVaultSecretFuse.FuseOps |> NativePtr.write fuseOpPtr
                     let fuseRet = fuse_main_real(args.Length, args, fuseOpPtr |> NativePtr.toNativeInt, fuseOpSize |> int64, IntPtr.Zero)                
                     fuseRet
-            System.Console.WriteLine("FUSE exited.")
+            fuse_log(fuse_log_level.FUSE_LOG_INFO, "FUSE exited.")
             ret
