@@ -11,6 +11,20 @@ open Operations
 
 module Mocks =
 
+    module FakeContent =
+        module SmallFile =
+            let contents =
+                "Hello, world!"
+            let contentBytes = System.Text.Encoding.UTF8.GetBytes(contents)
+            let contentLength = contentBytes.LongLength
+
+        module HugeFile =
+            let contents =
+                Security.Cryptography.RandomNumberGenerator.GetBytes(1024 * 10) |> Convert.ToBase64String
+            let contentBytes = System.Text.Encoding.UTF8.GetBytes(contents)
+            let contentLength = contentBytes.LongLength
+
+
     let getAttributes : GetAttributes =
         fun path ->
             let statBasicInfo() =

@@ -1,25 +1,6 @@
 namespace KeyVaultFuse
 
-open System
-open System.Runtime.InteropServices
-open Microsoft.FSharp.NativeInterop
-open Libc
 open Stat
-open Fuse
-
-module FakeContent =
-    module SmallFile =
-        let contents =
-            "Hello, world!"
-        let contentBytes = System.Text.Encoding.UTF8.GetBytes(contents)
-        let contentLength = contentBytes.LongLength
-
-    module HugeFile =
-        let contents =
-            Security.Cryptography.RandomNumberGenerator.GetBytes(1024 * 10) |> Convert.ToBase64String
-        let contentBytes = System.Text.Encoding.UTF8.GetBytes(contents)
-        let contentLength = contentBytes.LongLength
-
 
 module Operations =
 
