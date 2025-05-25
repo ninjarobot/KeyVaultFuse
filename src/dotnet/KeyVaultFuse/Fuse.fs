@@ -107,6 +107,10 @@ module Fuse =
     [<UnmanagedFunctionPointer(CallingConvention.Cdecl)>]
     type OpenDelegate = delegate of path:string * nativeptr<fuse_file_info> -> int
 
+    //int (*write) (const char *, const char *, size_t, off_t, struct fuse_file_info *)
+    [<UnmanagedFunctionPointer(CallingConvention.Cdecl)>]
+    type WriteDelegate = delegate of path:string * nativeptr<char> * int * int * nativeptr<fuse_file_info> -> int
+
     [<UnmanagedFunctionPointer(CallingConvention.Cdecl)>]
     type ReadDelegate = delegate of path:string * buffPtr:nativeint * size:uint64 * offset:int64 * fi:nativeptr<fuse_file_info> -> int
 

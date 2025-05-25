@@ -12,3 +12,9 @@ module Operations =
 
     /// Reads the contents of a file into a byte array. Strings should be UTF-8.
     type ReadFile = string -> byte[]
+    
+    /// Opens a file - not supported, but implemented to provide a log message.
+    type OpenFile = string -> int
+
+    /// Writes a file - not supported, but implemented to provide a meaningful error response.
+    type Write = string -> int

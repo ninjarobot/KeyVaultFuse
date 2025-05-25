@@ -15,6 +15,9 @@ module Errors =
     // No such file or directory
     [<Literal>]
     let ENOENT = 2
+    // No access - permission denied
+    [<Literal>]
+    let EACCES = 13
     // Machine is not on the network
     [<Literal>]
     let ENONET = 64

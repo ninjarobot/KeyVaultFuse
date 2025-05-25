@@ -4,6 +4,7 @@ open System
 open System.Runtime.InteropServices
 open FSharp.NativeInterop
 open KeyVaultFuse
+open KeyVaultFuse.Fuse
 open Operations
 open Libc
 open Stat
@@ -220,12 +221,25 @@ type KeyVaultSecretFuse =
             fuseConfig.kernel_cache <- 1
             fuseConfig |> NativePtr.write configPtr
         )
+
+    static let openDelegateInstance =
+        OpenDelegate(fun path _ ->
+            fuse_log(fuse_log_level.FUSE_LOG_ERR, $"Open on Key Vault volume at path '{path}' not supported.")
+            0
+        )
+    static let writeDelegateInstance =
+        WriteDelegate(fun path _ _ _ _ ->
+            fuse_log(fuse_log_level.FUSE_LOG_ERR, $"Write to Key Vault volume '{path}' not supported.")
+            -Errors.EACCES)
+
     static let fuseOps = 
         fuse_operations(
             getattr = Marshal.GetFunctionPointerForDelegate<_>(secretsGetAttributesDelegateInstance),
             readdir = Marshal.GetFunctionPointerForDelegate<_>(secretsReadDirDelegateInstance),
             read = Marshal.GetFunctionPointerForDelegate<_>(secretsReadFileDelegateInstance),
-            init = Marshal.GetFunctionPointerForDelegate<_>(initDelegateInstance)
+            init = Marshal.GetFunctionPointerForDelegate<_>(initDelegateInstance),
+            open' = Marshal.GetFunctionPointerForDelegate<_>(openDelegateInstance),
+            write = Marshal.GetFunctionPointerForDelegate<_>(writeDelegateInstance)
         )
 
     static member SecretClient
@@ -238,3 +252,5 @@ type KeyVaultSecretFuse =
     static member ReadDirDelegate = secretsReadDirDelegateInstance
     static member GetAttrDelegate = secretsGetAttributesDelegateInstance
     static member ReadDelegate = secretsReadFileDelegateInstance
+    static member OpenDelegate = openDelegateInstance
+    static member WriteDelegate = writeDelegateInstance
