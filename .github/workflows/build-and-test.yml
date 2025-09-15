@@ -26,7 +26,7 @@ jobs:
     - name: Build
       run: dotnet build -warnaserror --no-restore
     - name: Test
-      run: dotnet test --no-build --verbosity normal
+      run: dotnet run --no-build --project ./src/dotnet/KeyVaultFuseTests/KeyVaultFuseTests.fsproj --summary
     - name: Publish arm64
       working-directory: ./src/dotnet/KeyVaultFuse
       run: dotnet publish -c Release -r linux-arm64 -o ./bin/publish/linux-arm64
