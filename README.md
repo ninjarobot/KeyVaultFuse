@@ -3,6 +3,8 @@ KeyVaultFuse
 
 A file system for interacting with Azure Key Vault.
 
+[![dotnet build and test](https://github.com/ninjarobot/KeyVaultFuse/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/ninjarobot/KeyVaultFuse/actions/workflows/build-and-test.yml)
+
 This allows Linux applications to use the data in the key vault transparently, as if it were files on a the system. Typical usage would be to mount a key vault secret as a file to use for HTTPS settings when hosting a web server.
 
 The file system supports listing the versions of objects as files as well. The versions can be sorted by date to enable techniques such as including the two most recent versions of a secret to enable rotation.
@@ -96,5 +98,5 @@ Development
 
 Prerequisites
 ```
-apt install -y libfuse3-dev dotnet-sdk-8.0 clang lldb make
+apt install -y libfuse3-dev dotnet-sdk-9.0 clang lldb make
 ```
