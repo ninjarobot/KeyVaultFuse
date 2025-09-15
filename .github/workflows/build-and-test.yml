@@ -23,8 +23,10 @@ jobs:
         dotnet-version: 9.0.305
     - name: Restore dependencies
       run: dotnet restore
+      working-directory: ./src/dotnet
     - name: Build
       run: dotnet build -warnaserror --no-restore
+      working-directory: ./src/dotnet
     - name: Test
       run: dotnet run --no-build --project ./src/dotnet/KeyVaultFuseTests/KeyVaultFuseTests.fsproj --summary
     - name: Publish arm64
