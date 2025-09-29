@@ -281,22 +281,10 @@ module KeyVaultSecretOperations =
                 cert.Value.Cer
             | [|"keys";keyName;"value"|] ->
                 let key = keyClient.GetKey(keyName)
-                if key.Value.KeyType = KeyType.Rsa || key.Value.KeyType = KeyType.RsaHsm then
-                    use rsa = key.Value.Key.ToRSA()
-                    rsa.ExportSubjectPublicKeyInfoPem() |> System.Text.Encoding.UTF8.GetBytes
-                else if key.Value.KeyType = KeyType.Ec || key.Value.KeyType = KeyType.EcHsm then
-                    use ec = key.Value.Key.ToECDsa()
-                    ec.ExportSubjectPublicKeyInfoPem() |> System.Text.Encoding.UTF8.GetBytes
-                else [||]
+                key.Value |> keyContents
             | [|"keys";keyName;"versions";version|] ->
                 let key = keyClient.GetKey(keyName,version)
-                if key.Value.KeyType = KeyType.Rsa || key.Value.KeyType = KeyType.RsaHsm then
-                    use rsa = key.Value.Key.ToRSA()
-                    rsa.ExportSubjectPublicKeyInfoPem() |> System.Text.Encoding.UTF8.GetBytes
-                else if key.Value.KeyType = KeyType.Ec || key.Value.KeyType = KeyType.EcHsm then
-                    use ec = key.Value.Key.ToECDsa()
-                    ec.ExportSubjectPublicKeyInfoPem() |> System.Text.Encoding.UTF8.GetBytes
-                else [||]
+                key.Value |> keyContents
             | [|"secrets";secretName;"value"|] ->
                 let secret = secretClient.GetSecret(secretName)
                 secret.Value.Value |> System.Text.Encoding.UTF8.GetBytes
