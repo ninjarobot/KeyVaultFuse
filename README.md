@@ -51,6 +51,27 @@ MIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQDuHWkWAXEcEgq6
 -----END PRIVATE KEY-----
 ```
 
+When viewing the certificate directly, the contents of the x.509 certificate need to be decoded from DER format
+
+```
+openssl x509 -inform der -in /kvfs/certificates/myCertificate/value -text
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number:
+            53:79:04:2c:e4:9a:44:35:91:36:68:10:3b:7a:1c:cc
+        Signature Algorithm: sha256WithRSAEncryption
+        Issuer: CN = example.com
+        Validity
+            Not Before: Sep 29 13:37:16 2025 GMT
+            Not After : Sep 29 13:47:16 2026 GMT
+        Subject: CN = example.com
+```
+
+SSH Keys may use either RSA or elliptical curve. There is no way to really indicate this in the filesystem, so their
+contents are the subject public key in PEM format, which indicates the algorithm along with the public key. The private
+key is not included, as this never leaves the Key Vault.
+
 Usage
 -----
 

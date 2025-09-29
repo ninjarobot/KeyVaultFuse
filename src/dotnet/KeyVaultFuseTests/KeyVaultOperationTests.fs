@@ -2,9 +2,13 @@ module KeyVaultBehaviors
 
 open System
 open Expecto
+open Microsoft.Extensions.DependencyInjection
+open Microsoft.Extensions.Logging
 open Moq
 open Azure
 open Azure.Identity
+open Azure.Security.KeyVault.Certificates
+open Azure.Security.KeyVault.Keys
 open Azure.Security.KeyVault.Secrets
 open KeyVaultFuse
 
@@ -61,6 +65,12 @@ module MockSecrets =
             SecretModelFactory.KeyVaultSecret(props, "deet")
         let allProperties = [v1.Properties; v2.Properties]
 
+type MockCertificateClient() =
+    inherit CertificateClient()
+
+type MockKeyClient() =
+    inherit KeyClient()
+
 type MockSecretClient() =
     inherit SecretClient()
     override _.GetSecret(secretName: string, version: string, _:Threading.CancellationToken) =
@@ -84,6 +94,9 @@ type MockSecretClient() =
             Pageable.FromPages([Page.FromValues(MockSecrets.Secret2Versions.allProperties, null, Mock.Of<Response>())])
         | _ -> 
             Pageable.FromPages([Page.FromValues([], null, Mock.Of<Response>())])
+
+let mocks() =
+    MockCertificateClient(), MockKeyClient(), MockSecretClient()
 
 [<Tests>]
 let verifyingMocks = testList "Verifying SecretClientMock" [
@@ -131,28 +144,28 @@ let fuseOperationTests = testList "Fuse operation tests" [
     // Fix these so they test the logic against the mock SecretClient.
     test "Get attributes on secrets" {
         let secretClient = MockSecretClient()
-        let secret1Stat = KeyVaultSecretOperations.secretsGetAttributes secretClient "/secrets/testSecret1"
-        let secret2Stat = KeyVaultSecretOperations.secretsGetAttributes secretClient "/secrets/testSecret2"
+        let secret1Stat = KeyVaultSecretOperations.secretsGetAttributes (mocks()) "/secrets/testSecret1"
+        let secret2Stat = KeyVaultSecretOperations.secretsGetAttributes (mocks()) "/secrets/testSecret2"
         let secret1 = Expect.wantSome secret1Stat "testSecret1 stat should not be None"
         Expect.equal secret1.st_size 3L "Incorrect size for testSecret1"
         Expect.isSome secret2Stat "testSecret2 stat should not be None"
     }
     test "List secrets" {
         let secretClient = MockSecretClient()
-        let secrets = KeyVaultSecretOperations.secretsReadDir secretClient "/secrets"
+        let secrets = KeyVaultSecretOperations.keyVaultReadDir (mocks()) "/secrets"
         Expect.containsAll secrets ["."; ".."] "Missing current and parent directories"
         Expect.containsAll secrets ["testSecret1"; "testSecret2"] "Missing secrets"
     }
     test "List secret versions for 'testSecret1'" {
         let secretClient = MockSecretClient()
-        let secretVersions = KeyVaultSecretOperations.secretsReadDir secretClient "/secrets/testSecret1/versions"
+        let secretVersions = KeyVaultSecretOperations.keyVaultReadDir (mocks()) "/secrets/testSecret1/versions"
         Expect.containsAll secretVersions ["."; ".."] "Missing current and parent directories"
         Expect.containsAll secretVersions ["v001"; "v002"; "v003"] "Missing existing versions"
     }
     test "Read secret version for 'testSecret1'" {
         let secretClient = MockSecretClient()
         let secret =
-            KeyVaultSecretOperations.secretsReadFile secretClient "/secrets/testSecret1/versions/v003"
+            KeyVaultSecretOperations.keyVaultReadFile (mocks()) "/secrets/testSecret1/versions/v003"
             |> System.Text.Encoding.UTF8.GetString
         Expect.equal secret MockSecrets.Secret1Versions.v3.Value "Incorrect data for testSecret1 v003"
     }
@@ -218,9 +231,14 @@ let fuseDelegateTests = testList "Fuse delegate tests" [
 [<Tests>]
 let integrationCacheTests = ptestList "Integration Cache Tests" [
     test "Get secret" {
+        let serviceProvider =
+            ServiceCollection()
+                .AddSingleton<CachePolicy.KeyVaultCache>()
+                .AddLogging(fun builder -> builder.AddSimpleConsole() |> ignore)
+                .BuildServiceProvider()
         let cred = DefaultAzureCredential()
         let secretOptions = SecretClientOptions()
-        secretOptions.AddPolicy(new CachePolicy.KeyVaultCache(), Core.HttpPipelinePosition.PerCall)
+        secretOptions.AddPolicy(serviceProvider.GetRequiredService<CachePolicy.KeyVaultCache>(), Core.HttpPipelinePosition.PerCall)
         let client = new SecretClient(new Uri("https://kvtest467832.vault.azure.net/"), cred, secretOptions)
         let secret = client.GetSecret("cert1")
         Expect.isNotNull secret.Value.Value "Secret value should not be null"

@@ -3,6 +3,7 @@ namespace KeyVaultFuse
 open System
 open Azure.Core
 open Azure.Core.Pipeline
+open Microsoft.Extensions.Logging
 open Microsoft.Extensions.Caching.Memory
 
 module CachePolicy =
@@ -55,7 +56,7 @@ module CachePolicy =
             this.Headers.TryGetValues(name, &values)
 
 
-    type KeyVaultCache() =
+    type KeyVaultCache(logger:ILogger<KeyVaultCache>) =
         inherit HttpPipelinePolicy()
 
         let cache = new MemoryCache(MemoryCacheOptions())
@@ -72,7 +73,9 @@ module CachePolicy =
             if message.Request.Method = RequestMethod.Get then
                 let uriPath = message.Request.Uri.Path
                 System.Console.WriteLine("Processing request for {0}", uriPath)
-                if uriPath.StartsWith("/secrets/", StringComparison.OrdinalIgnoreCase) || uriPath.StartsWith("/certificates/", StringComparison.OrdinalIgnoreCase) then
+                if uriPath.StartsWith("/secrets/", StringComparison.OrdinalIgnoreCase)
+                   || uriPath.StartsWith("/certificates/", StringComparison.OrdinalIgnoreCase)
+                   || uriPath.StartsWith("/keys/", StringComparison.OrdinalIgnoreCase) then
                     message.Response <- cache.GetOrCreate(uriPath, fun cacheEntry ->
                         System.Console.WriteLine("Cache miss for {0}", uriPath)
                         processNext(message, pipeline)
@@ -82,10 +85,10 @@ module CachePolicy =
                                 | 401 -> TimeSpan.FromSeconds(0.1) // Expire quickly so it can retry with a new auth token.
                                 | _ -> TimeSpan.FromSeconds(5.)
                             cacheEntry.AbsoluteExpirationRelativeToNow <- expiry
-                            System.Console.WriteLine("Added to cache for {0} with {1} seconds expiry", uriPath, expiry.TotalSeconds)
+                            logger.LogInformation("Added to cache for {0} with {1} seconds expiry", uriPath, expiry.TotalSeconds)
                         else // Default expiry for successful responses
                             cacheEntry.AbsoluteExpirationRelativeToNow <- TimeSpan.FromMinutes(5.)
-                            System.Console.WriteLine("Added to cache for {0} with 5 minutes expiry", uriPath)
+                            logger.LogInformation("Added to cache for {0} with 5 minutes expiry", uriPath)
                         new ResponseMessageCacheEntry(message.Response.Content, message.Response.Headers, message.Response.ReasonPhrase, message.Response.Status)
                     )
                 else
