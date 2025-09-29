@@ -2,16 +2,18 @@
 
 open System
 open System.Runtime.InteropServices
+open Azure.Security.KeyVault.Certificates
+open Azure.Security.KeyVault.Keys
+open Azure.Security.KeyVault.Secrets
 open Microsoft.FSharp.NativeInterop
 open Fuse
 open Microsoft.Extensions.DependencyInjection
 open Microsoft.Extensions.Logging
-open Azure.Security.KeyVault.Secrets
 
 
 module Program =
 
-    type FuseHost (logger:ILogger<FuseHost>) =
+    type FuseHost (logger:ILogger<FuseHost>, kvCache:CachePolicy.KeyVaultCache) =
         member this.startFuse (args:string array) =
             logger.LogInformation "Configuring FUSE..."
             let fuseOpPtr = NativePtr.stackalloc<fuse_operations>1
@@ -42,13 +44,21 @@ module Program =
                             uriBuilder.Host <- args[0] + ".vault.azure.net"
                         uriBuilder.Uri
                 logger.LogInformation("Vault URI: {0}", vaultUri)
-                use kvCache = new CachePolicy.KeyVaultCache()
+                let credential = Azure.Identity.DefaultAzureCredential(includeInteractiveCredentials = false)
+                let certificateClientOptions = CertificateClientOptions()
+                certificateClientOptions.AddPolicy(kvCache, Azure.Core.HttpPipelinePosition.PerCall)
+                KeyVaultSecretFuse.CertificateClient <-
+                    CertificateClient(vaultUri, credential, certificateClientOptions)
+                let keyClientOptions = KeyClientOptions()
+                keyClientOptions.AddPolicy(kvCache, Azure.Core.HttpPipelinePosition.PerCall)
+                KeyVaultSecretFuse.KeyClient <-
+                    KeyClient(vaultUri, credential, keyClientOptions)
                 let secretClientOptions = SecretClientOptions();
                 // Unless cache is disabled, add the cache policy to the secret client options.
                 if not (args |> Array.contains "disable_cache") then
                     secretClientOptions.AddPolicy(kvCache, Azure.Core.HttpPipelinePosition.PerCall)
                 KeyVaultSecretFuse.SecretClient <-
-                    SecretClient(vaultUri, Azure.Identity.DefaultAzureCredential(), secretClientOptions)
+                    SecretClient(vaultUri, credential, secretClientOptions)
                 KeyVaultSecretFuse.FuseOps |> NativePtr.write fuseOpPtr
                 let fuseOptions = $"{args[0]} -o allow_other -f {args[1]}".Split null
                 fuse_main_real(fuseOptions.Length, fuseOptions, fuseOpPtr |> NativePtr.toNativeInt, fuseOpSize |> int64, IntPtr.Zero)                
@@ -64,6 +74,7 @@ module Program =
             let ret =
                 ServiceCollection()
                     .AddSingleton<FuseHost>()
+                    .AddSingleton<CachePolicy.KeyVaultCache>()
                     .AddLogging(fun builder -> builder.AddSimpleConsole() |> ignore)
                     .BuildServiceProvider()
                     .GetService<FuseHost>()
