@@ -144,8 +144,8 @@ let fuseOperationTests = testList "Fuse operation tests" [
     // Fix these so they test the logic against the mock SecretClient.
     test "Get attributes on secrets" {
         let secretClient = MockSecretClient()
-        let secret1Stat = KeyVaultSecretOperations.secretsGetAttributes secretClient "/secrets/testSecret1"
-        let secret2Stat = KeyVaultSecretOperations.secretsGetAttributes secretClient "/secrets/testSecret2"
+        let secret1Stat = KeyVaultSecretOperations.secretsGetAttributes (mocks()) "/secrets/testSecret1"
+        let secret2Stat = KeyVaultSecretOperations.secretsGetAttributes (mocks()) "/secrets/testSecret2"
         let secret1 = Expect.wantSome secret1Stat "testSecret1 stat should not be None"
         Expect.equal secret1.st_size 3L "Incorrect size for testSecret1"
         Expect.isSome secret2Stat "testSecret2 stat should not be None"

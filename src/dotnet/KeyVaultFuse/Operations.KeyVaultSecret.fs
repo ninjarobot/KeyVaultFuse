@@ -53,8 +53,17 @@ module KeyVaultSecretOperations =
             yield secretProps
         }
 
+    let keyContents (key:KeyVaultKey) =
+        if key.KeyType = KeyType.Rsa || key.KeyType = KeyType.RsaHsm then
+            use rsa = key.Key.ToRSA()
+            rsa.ExportSubjectPublicKeyInfoPem() |> System.Text.Encoding.UTF8.GetBytes
+        else if key.KeyType = KeyType.Ec || key.KeyType = KeyType.EcHsm then
+            use ec = key.Key.ToECDsa()
+            ec.ExportSubjectPublicKeyInfoPem() |> System.Text.Encoding.UTF8.GetBytes
+        else [||]
+    
     /// Gets attributes for a secret list, version list, or secret version. 
-    let secretsGetAttributes (secretClient:SecretClient) : GetAttributes =
+    let secretsGetAttributes (certificateClient:CertificateClient, keyClient:KeyClient, secretClient:SecretClient) : GetAttributes =
         fun path ->
             let statBasicInfo() =
                 let mutable stat = Stat()
@@ -75,11 +84,107 @@ module KeyVaultSecretOperations =
                 stat.st_nlink <- 2u
                 stat.st_size <- 0L
                 stat |> Some
+            | [|"certificates"|] // certificates directory
+            | [|"keys"|] // keys directory
             | [|"secrets"|] -> // Secrets directory
                 let mutable stat = statBasicInfo()
                 stat.st_mode <- uint32 (S_IFDIR ||| 0o0755)
                 stat.st_nlink <- 2u
                 stat.st_size <- 0L
+                stat |> Some
+            | [|"certificates"; certName|] -> // Single certificate
+                let cert = certificateClient.GetCertificate(certName)
+                let contents = cert.Value.Cer
+                let mutable stat = statBasicInfo()
+                if(cert.Value.Properties.CreatedOn.HasValue) then
+                    let unixTime = cert.Value.Properties.CreatedOn.Value.ToUnixTimeSeconds()
+                    stat.st_ctime <- unixTime
+                    stat.st_ctimensec <- uint64(unixTime) * 1000000000UL
+                stat.st_mode <- uint32 (S_IFDIR ||| 0o0755)
+                stat.st_nlink <- 1u
+                stat.st_size <- contents.LongLength
+                stat |> Some
+            | [|"certificates";certName;"value"|] -> // Certificate value
+                let cert = certificateClient.GetCertificate(certName)
+                let contents = cert.Value.Cer
+                let mutable stat = statBasicInfo()
+                if(cert.Value.Properties.CreatedOn.HasValue) then
+                    let unixTime = cert.Value.Properties.CreatedOn.Value.ToUnixTimeSeconds()
+                    stat.st_ctime <- unixTime
+                    stat.st_ctimensec <- uint64(unixTime) * 1000000000UL
+                    stat.st_mtime <- unixTime
+                    stat.st_mtimensec <- uint64(unixTime) * 1000000000UL
+                let mutable stat = statBasicInfo()
+                stat.st_mode <- uint32 (S_IFREG ||| 0o0444)
+                stat.st_nlink <- 1u
+                stat.st_size <- contents.LongLength
+                stat |> Some
+            | [|"certificates";certName;"versions"|] -> // Certificate versions directory
+                let mutable stat = statBasicInfo()
+                stat.st_mode <- uint32 (S_IFDIR ||| 0o0755)
+                stat.st_nlink <- 1u
+                stat.st_size <- 0L
+                stat |> Some
+            | [|"certificates";certName;"versions";version|] -> // Single certificate version
+                let cert = certificateClient.GetCertificate(certName)
+                let contents = cert.Value.Cer
+                let mutable stat = statBasicInfo()
+                if(cert.Value.Properties.CreatedOn.HasValue) then
+                    let unixTime = cert.Value.Properties.CreatedOn.Value.ToUnixTimeSeconds()
+                    stat.st_ctime <- unixTime
+                    stat.st_ctimensec <- uint64(unixTime) * 1000000000UL
+                    stat.st_mtime <- unixTime
+                    stat.st_mtimensec <- uint64(unixTime) * 1000000000UL
+                stat.st_mode <- uint32 (S_IFREG ||| 0o0444)
+                stat.st_nlink <- 1u
+                stat.st_size <- contents.LongLength
+                stat |> Some
+            | [|"keys"; keyName|] -> // Single key
+                let key = keyClient.GetKey(keyName)
+                let contents = key.Value |> keyContents
+                let mutable stat = statBasicInfo()
+                if(key.Value.Properties.CreatedOn.HasValue) then
+                    let unixTime = key.Value.Properties.CreatedOn.Value.ToUnixTimeSeconds()
+                    stat.st_ctime <- unixTime
+                    stat.st_ctimensec <- uint64(unixTime) * 1000000000UL
+                stat.st_mode <- uint32 (S_IFDIR ||| 0o0755)
+                stat.st_nlink <- 1u
+                stat.st_size <- contents.LongLength
+                stat |> Some
+            | [|"keys";keyName;"value"|] -> // Key value
+                let key = keyClient.GetKey(keyName)
+                let contents = key.Value |> keyContents
+                let mutable stat = statBasicInfo()
+                if(key.Value.Properties.CreatedOn.HasValue) then
+                    let unixTime = key.Value.Properties.CreatedOn.Value.ToUnixTimeSeconds()
+                    stat.st_ctime <- unixTime
+                    stat.st_ctimensec <- uint64(unixTime) * 1000000000UL
+                    stat.st_mtime <- unixTime
+                    stat.st_mtimensec <- uint64(unixTime) * 1000000000UL
+                let mutable stat = statBasicInfo()
+                stat.st_mode <- uint32 (S_IFREG ||| 0o0444)
+                stat.st_nlink <- 1u
+                stat.st_size <- contents.LongLength
+                stat |> Some
+            | [|"keys";keyName;"versions"|] -> // Key versions directory
+                let mutable stat = statBasicInfo()
+                stat.st_mode <- uint32 (S_IFDIR ||| 0o0755)
+                stat.st_nlink <- 1u
+                stat.st_size <- 0L
+                stat |> Some
+            | [|"keys";keyName;"versions";version|] -> // Single key version
+                let key = keyClient.GetKey(keyName)
+                let contents = key.Value |> keyContents
+                let mutable stat = statBasicInfo()
+                if(key.Value.Properties.CreatedOn.HasValue) then
+                    let unixTime = key.Value.Properties.CreatedOn.Value.ToUnixTimeSeconds()
+                    stat.st_ctime <- unixTime
+                    stat.st_ctimensec <- uint64(unixTime) * 1000000000UL
+                    stat.st_mtime <- unixTime
+                    stat.st_mtimensec <- uint64(unixTime) * 1000000000UL
+                stat.st_mode <- uint32 (S_IFREG ||| 0o0444)
+                stat.st_nlink <- 1u
+                stat.st_size <- contents.LongLength
                 stat |> Some
             | [|"secrets"; secretName|] -> // Single secret
                 let secret = secretClient.GetSecret(secretName)
@@ -217,7 +322,7 @@ type KeyVaultSecretFuse =
             fuse_log(fuse_log_level.FUSE_LOG_INFO, msg)
             NativePtr.clear statPtr
             try
-                match secretsGetAttributes secretClient path with
+                match secretsGetAttributes (certificateClient, keyClient, secretClient) path with
                 | Some stat ->
                     stat |> NativePtr.write statPtr
                     0
