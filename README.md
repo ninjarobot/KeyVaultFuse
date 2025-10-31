@@ -72,6 +72,14 @@ SSH Keys may use either RSA or elliptical curve. There is no way to really indic
 contents are the subject public key in PEM format, which indicates the algorithm along with the public key. The private
 key is not included, as this never leaves the Key Vault.
 
+Standard linux tooling can convert the RSA public key from the key vault
+to OpenSSH format:
+```
+ssh-keygen -f /kvfs/keys/ssh-signing-key/value -i -m PKCS8
+
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCnQu2fsGzi8JRwKN3WjI2oAUDQHaPbKGF70qIEUGtkVMLc9lG1Mlyj806wqw1FphI34MbN9mhiFsmFSu31qfFdVh1EI84Hxwze6tb/kqY3WZKuOHVaU2+3q/EBrSHN6fvk8y5RcS4BHgzpx3ykrgF1nbFMTqelhQWgP59CwUAVEb9adVtqCh6EnNp3EbHeacI3FUQV96DWBwSJNgRmA/63RMQ40D8cySyJYTXamGmKi2ElifjetB5Pf4ypB+qbGLIY91cpm6kvgtWJTheMNY47rKcLYljnWmvZxxGqWWM6j3KrNLoU5o0GpbzBCORikTDCl2N6gaQSlTkMr01mUzh1
+```
+
 Usage
 -----
 
