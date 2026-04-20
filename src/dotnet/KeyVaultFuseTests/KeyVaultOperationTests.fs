@@ -91,7 +91,7 @@ type MockKeyClient() =
 
 type MockSecretClient() =
     inherit SecretClient()
-    override _.GetSecret(secretName: string, version: string, _:Threading.CancellationToken) =
+    override _.GetSecret(secretName: string, version: string, _:Nullable<SecretContentType>, _:Threading.CancellationToken) =
         let secret =
             match version with
             | null -> MockSecrets.Secret1Versions.v3
