@@ -119,5 +119,5 @@ Development
 
 Prerequisites
 ```
-apt install -y libfuse3-dev dotnet-sdk-9.0 clang lldb make
+apt install -y libfuse3-dev dotnet-sdk-10.0 clang lldb make
 ```
