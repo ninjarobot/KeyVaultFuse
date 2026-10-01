@@ -99,7 +99,13 @@ module KeyVaultSecretOperations =
             | [||] -> // Root directory
                 let mutable stat = statBasicInfo()
                 stat.st_mode <- uint32 (S_IFDIR ||| 0o0755)
+                #if LINUX_ARM64 || NONE
                 stat.st_nlink <- 2u
+                #else
+                #if LINUX_X64
+                stat.st_nlink <- 2UL
+                #endif
+                #endif
                 stat.st_size <- 0L
                 stat |> Some
             | [|"certificates"|] // certificates directory
@@ -107,7 +113,13 @@ module KeyVaultSecretOperations =
             | [|"secrets"|] -> // Secrets directory
                 let mutable stat = statBasicInfo()
                 stat.st_mode <- uint32 (S_IFDIR ||| 0o0755)
+                #if LINUX_ARM64 || NONE
                 stat.st_nlink <- 2u
+                #else
+                #if LINUX_X64
+                stat.st_nlink <- 2UL
+                #endif
+                #endif
                 stat.st_size <- 0L
                 stat |> Some
             | [|"certificates"; certName|] -> // Single certificate
@@ -119,7 +131,13 @@ module KeyVaultSecretOperations =
                     stat.st_ctime <- unixTime
                     stat.st_ctimensec <- uint64(unixTime) * 1000000000UL
                 stat.st_mode <- uint32 (S_IFDIR ||| 0o0755)
+                #if LINUX_ARM64 || NONE
                 stat.st_nlink <- 1u
+                #else
+                #if LINUX_X64
+                stat.st_nlink <- 1UL
+                #endif
+                #endif
                 stat.st_size <- contents.LongLength
                 stat |> Some
             | [|"certificates";certName;"value"|] -> // Certificate value
@@ -134,13 +152,25 @@ module KeyVaultSecretOperations =
                     stat.st_mtimensec <- uint64(unixTime) * 1000000000UL
                 let mutable stat = statBasicInfo()
                 stat.st_mode <- uint32 (S_IFREG ||| 0o0444)
+                #if LINUX_ARM64 || NONE
                 stat.st_nlink <- 1u
+                #else
+                #if LINUX_X64
+                stat.st_nlink <- 1UL
+                #endif
+                #endif
                 stat.st_size <- contents.LongLength
                 stat |> Some
             | [|"certificates";certName;"versions"|] -> // Certificate versions directory
                 let mutable stat = statBasicInfo()
                 stat.st_mode <- uint32 (S_IFDIR ||| 0o0755)
+                #if LINUX_ARM64 || NONE
                 stat.st_nlink <- 1u
+                #else
+                #if LINUX_X64
+                stat.st_nlink <- 1UL
+                #endif
+                #endif
                 stat.st_size <- 0L
                 stat |> Some
             | [|"certificates";certName;"versions";version|] -> // Single certificate version
@@ -154,7 +184,13 @@ module KeyVaultSecretOperations =
                     stat.st_mtime <- unixTime
                     stat.st_mtimensec <- uint64(unixTime) * 1000000000UL
                 stat.st_mode <- uint32 (S_IFREG ||| 0o0444)
+                #if LINUX_ARM64 || NONE
                 stat.st_nlink <- 1u
+                #else
+                #if LINUX_X64
+                stat.st_nlink <- 1UL
+                #endif
+                #endif
                 stat.st_size <- contents.LongLength
                 stat |> Some
             | [|"keys"; keyName|] -> // Single key
@@ -166,7 +202,13 @@ module KeyVaultSecretOperations =
                     stat.st_ctime <- unixTime
                     stat.st_ctimensec <- uint64(unixTime) * 1000000000UL
                 stat.st_mode <- uint32 (S_IFDIR ||| 0o0755)
+                #if LINUX_ARM64 || NONE
                 stat.st_nlink <- 1u
+                #else
+                #if LINUX_X64
+                stat.st_nlink <- 1UL
+                #endif
+                #endif
                 stat.st_size <- contents.LongLength
                 stat |> Some
             | [|"keys";keyName;"value"|] -> // Key value
@@ -181,13 +223,25 @@ module KeyVaultSecretOperations =
                     stat.st_mtimensec <- uint64(unixTime) * 1000000000UL
                 let mutable stat = statBasicInfo()
                 stat.st_mode <- uint32 (S_IFREG ||| 0o0444)
+                #if LINUX_ARM64 || NONE
                 stat.st_nlink <- 1u
+                #else
+                #if LINUX_X64
+                stat.st_nlink <- 1UL
+                #endif
+                #endif
                 stat.st_size <- contents.LongLength
                 stat |> Some
             | [|"keys";keyName;"versions"|] -> // Key versions directory
                 let mutable stat = statBasicInfo()
                 stat.st_mode <- uint32 (S_IFDIR ||| 0o0755)
+                #if LINUX_ARM64 || NONE
                 stat.st_nlink <- 1u
+                #else
+                #if LINUX_X64
+                stat.st_nlink <- 1UL
+                #endif
+                #endif
                 stat.st_size <- 0L
                 stat |> Some
             | [|"keys";keyName;"versions";version|] -> // Single key version
@@ -201,7 +255,13 @@ module KeyVaultSecretOperations =
                     stat.st_mtime <- unixTime
                     stat.st_mtimensec <- uint64(unixTime) * 1000000000UL
                 stat.st_mode <- uint32 (S_IFREG ||| 0o0444)
+                #if LINUX_ARM64 || NONE
                 stat.st_nlink <- 1u
+                #else
+                #if LINUX_X64
+                stat.st_nlink <- 1UL
+                #endif
+                #endif
                 stat.st_size <- contents.LongLength
                 stat |> Some
             | [|"secrets"; secretName|] -> // Single secret
@@ -212,7 +272,13 @@ module KeyVaultSecretOperations =
                     stat.st_ctime <- unixTime
                     stat.st_ctimensec <- uint64(unixTime) * 1000000000UL
                 stat.st_mode <- uint32 (S_IFDIR ||| 0o0755)
+                #if LINUX_ARM64 || NONE
                 stat.st_nlink <- 1u
+                #else
+                #if LINUX_X64
+                stat.st_nlink <- 1UL
+                #endif
+                #endif
                 stat.st_size <- System.Text.Encoding.UTF8.GetBytes(secret.Value.Value).LongLength
                 stat |> Some
             | [|"secrets";secretName;"value"|] -> // Secrets versions directory
@@ -226,13 +292,25 @@ module KeyVaultSecretOperations =
                     stat.st_mtimensec <- uint64(unixTime) * 1000000000UL
                 let mutable stat = statBasicInfo()
                 stat.st_mode <- uint32 (S_IFREG ||| 0o0444)
+                #if LINUX_ARM64 || NONE
                 stat.st_nlink <- 1u
+                #else
+                #if LINUX_X64
+                stat.st_nlink <- 1UL
+                #endif
+                #endif
                 stat.st_size <- System.Text.Encoding.UTF8.GetBytes(secret.Value.Value).LongLength
                 stat |> Some
             | [|"secrets";secretName;"versions"|] -> // Secrets versions directory
                 let mutable stat = statBasicInfo()
                 stat.st_mode <- uint32 (S_IFDIR ||| 0o0755)
+                #if LINUX_ARM64 || NONE
                 stat.st_nlink <- 1u
+                #else
+                #if LINUX_X64
+                stat.st_nlink <- 1UL
+                #endif
+                #endif
                 stat.st_size <- 0L
                 stat |> Some
             | [|"secrets";secretName;"versions";version|] -> // Single secret version
@@ -245,7 +323,13 @@ module KeyVaultSecretOperations =
                     stat.st_mtime <- unixTime
                     stat.st_mtimensec <- uint64(unixTime) * 1000000000UL
                 stat.st_mode <- uint32 (S_IFREG ||| 0o0444)
+                #if LINUX_ARM64 || NONE
                 stat.st_nlink <- 1u
+                #else
+                #if LINUX_X64
+                stat.st_nlink <- 1UL
+                #endif
+                #endif
                 stat.st_size <- System.Text.Encoding.UTF8.GetBytes(secret.Value.Value).LongLength
                 stat |> Some
             | _ ->

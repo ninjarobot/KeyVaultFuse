@@ -63,19 +63,37 @@ module Mocks =
             | "/certificates" ->
                 let mutable stat = statBasicInfo()
                 stat.st_mode <- uint32 (S_IFDIR ||| 0o0755)
+                #if LINUX_ARM64 || NONE
                 stat.st_nlink <- 2u
+                #else
+                #if LINUX_X64
+                stat.st_nlink <- 2UL
+                #endif
+                #endif
                 stat.st_size <- 4096L // Linux directory metadata min size
                 stat |> Some
             | "/certificates/bigcert" ->
                 let mutable stat = statBasicInfo()
                 stat.st_mode <- uint32 (S_IFREG ||| 0o0444)
+                #if LINUX_ARM64 || NONE
                 stat.st_nlink <- 1u
+                #else
+                #if LINUX_X64
+                stat.st_nlink <- 1UL
+                #endif
+                #endif
                 stat.st_size <- int64 FakeContent.HugeFile.contentLength
                 stat |> Some
             | "/whatevs" ->
                 let mutable stat = statBasicInfo()
                 stat.st_mode <- uint32 (S_IFREG ||| 0o0444)
+                #if LINUX_ARM64 || NONE
                 stat.st_nlink <- 1u
+                #else
+                #if LINUX_X64
+                stat.st_nlink <- 1UL
+                #endif
+                #endif
                 stat.st_size <- int64 FakeContent.SmallFile.contentLength
                 stat |> Some
             |_ ->

@@ -62,19 +62,37 @@ module Mocks =
             | "/certificates" ->
                 let mutable stat = statBasicInfo()
                 stat.st_mode <- uint32 (S_IFDIR ||| 0o0755)
+                #if LINUX_ARM64 || NONE
                 stat.st_nlink <- 2u
+                #else
+                #if LINUX_X64
+                stat.st_nlink <- 2UL
+                #endif
+                #endif
                 stat.st_size <- 4096L // Linux directory metadata min size
                 stat |> Some
             | "/certificates/bigcert" ->
                 let mutable stat = statBasicInfo()
                 stat.st_mode <- uint32 (S_IFREG ||| 0o0444)
+                #if LINUX_ARM64 || NONE
                 stat.st_nlink <- 1u
+                #else
+                #if LINUX_X64
+                stat.st_nlink <- 1UL
+                #endif
+                #endif
                 stat.st_size <- int64 HugeFile.contentLength
                 stat |> Some
             | "/whatevs" ->
                 let mutable stat = statBasicInfo()
                 stat.st_mode <- uint32 (S_IFREG ||| 0o0444)
+                #if LINUX_ARM64 || NONE
                 stat.st_nlink <- 1u
+                #else
+                #if LINUX_X64
+                stat.st_nlink <- 1UL
+                #endif
+                #endif
                 stat.st_size <- int64 SmallFile.contentLength
                 stat |> Some
             |_ ->
@@ -117,7 +135,13 @@ let tests =
                 let res = getAttr.Invoke("/", statPtr, fuseFileInfoPtr)
                 Expect.equal res 0 "Expected 0 return value"
                 let stat = NativePtr.read statPtr
+                #if LINUX_ARM64 || NONE
                 Expect.equal stat.st_nlink 2u "Expected 2u for a directory"
+                #else
+                #if LINUX_X64
+                Expect.equal stat.st_nlink 2UL "Expected 2UL for a directory"
+                #endif
+                #endif
                 Expect.equal (int32 stat.st_mode &&& S_IFDIR) S_IFDIR "Expected mode = directory 0040000"
                 Expect.equal (int32 stat.st_mode &&& 0o0755) 0o0755 "Expected executable dir 0755"
             }
@@ -130,7 +154,13 @@ let tests =
                 let res = getAttr.Invoke("/certificates", statPtr, fuseFileInfoPtr)
                 Expect.equal res 0 "Expected 0 return value"
                 let stat = NativePtr.read statPtr
+                #if LINUX_ARM64 || NONE
                 Expect.equal stat.st_nlink 2u "Expected 2u for a directory"
+                #else
+                #if LINUX_X64
+                Expect.equal stat.st_nlink 2UL "Expected 2UL for a directory"
+                #endif
+                #endif
                 Expect.equal (int32 stat.st_mode &&& S_IFDIR) S_IFDIR "Expected mode = directory 0040000"
                 Expect.equal (int32 stat.st_mode &&& 0o0755) 0o0755 "Expected executable dir 0755"
             }
@@ -143,7 +173,13 @@ let tests =
                 let res = getAttr.Invoke("/whatevs", statPtr, fuseFileInfoPtr)
                 Expect.equal res 0 "Expected 0 return value"
                 let stat = NativePtr.read statPtr
+                #if LINUX_ARM64 || NONE
                 Expect.equal stat.st_nlink 1u "Expected 1u for a file"
+                #else
+                #if LINUX_X64
+                Expect.equal stat.st_nlink 1UL "Expected 1UL for a file"
+                #endif
+                #endif
                 Expect.equal stat.st_size 13L "Expected 13 bytes for file size"
                 Expect.equal (int32 stat.st_mode &&& S_IFREG) S_IFREG "Expected mode = regular file 0100000"
                 Expect.equal (int32 stat.st_mode &&& 0o0444) 0o0444 "Expected read only file 0444"

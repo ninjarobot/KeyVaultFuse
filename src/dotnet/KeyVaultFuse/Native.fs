@@ -44,6 +44,7 @@ module Stat =
     let S_IFDIR = 0o0040000
     let S_IFREG = 0o0100000
 
+#if LINUX_ARM64 || NONE // NONE is used for unit tests
     [<Struct; StructLayout(LayoutKind.Sequential)>]
     type Stat =
         struct
@@ -68,3 +69,33 @@ module Stat =
             val mutable __glibc_reserved_0: int   // Reserved space (2 integers - int[2]
             val mutable __glibc_reserved_1: int   // Reserved space (2 integers - int[2]
         end
+#else
+#if LINUX_X64
+    [<Struct; StructLayout(LayoutKind.Sequential)>]
+    type Stat =
+        struct
+            val mutable st_dev: uint64            // Device
+            val mutable st_ino: uint64            // File serial number
+            val mutable st_nlink: uint64          // Link count
+            val mutable st_mode: uint32           // File mode
+            val mutable st_uid: uint32            // User ID of the file's owner
+            val mutable st_gid: uint32            // Group ID of the file's group
+            val mutable __pad0: int32             // Padding
+            val mutable st_rdev: uint64           // Device number, if device
+            val mutable st_size: int64            // Size of file, in bytes
+            val mutable st_blksize: int64         // Optimal block size for I/O
+            val mutable st_blocks: int64          // 512-byte blocks allocated
+            val mutable st_atime: int64           // Time of last access
+            val mutable st_atimensec: uint64      // Nscecs of last access.
+            val mutable st_mtime: int64           // Time of last modification
+            val mutable st_mtimensec: uint64      // Nscecs of last modification.
+            val mutable st_ctime: int64           // Time of last change
+            val mutable st_ctimensec: uint64      // Nscecs of last change.
+            val mutable __glibc_reserved_0: int64 // Reserved space
+            val mutable __glibc_reserved_1: int64 // Reserved space
+            val mutable __glibc_reserved_2: int64 // Reserved space
+        end
+#else
+#error Unsupported Architecture
+#endif
+#endif
