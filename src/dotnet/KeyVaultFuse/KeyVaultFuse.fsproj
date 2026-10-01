@@ -12,6 +12,19 @@
     <!--PublishAot>true</PublishAot-->
   </PropertyGroup>
 
+  <!-- Handle differences in x64 vs arm64 -->
+  <PropertyGroup Condition="'$(RuntimeIdentifier)' == 'linux-x64'">
+    <DefineConstants>$(DefineConstants);LINUX_X64</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(RuntimeIdentifier)' == 'linux-arm64'">
+    <DefineConstants>$(DefineConstants);LINUX_ARM64</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(RuntimeIdentifier)' == ''">
+    <DefineConstants>$(DefineConstants);NONE</DefineConstants>
+  </PropertyGroup>
+
   <ItemGroup>
     <LinkerArg Include="-v" />
   </ItemGroup>
