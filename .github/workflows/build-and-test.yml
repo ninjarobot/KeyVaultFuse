@@ -36,7 +36,7 @@ jobs:
       working-directory: ./src/dotnet/KeyVaultFuse
       run: dotnet publish -c Release -r linux-arm64 -o ./bin/publish/linux-arm64
     - name: Archive arm64
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v4.6.2
       with:
         name: linux-arm64
         path: ./src/dotnet/KeyVaultFuse/bin/publish/linux-arm64
@@ -44,7 +44,7 @@ jobs:
       working-directory: ./src/dotnet/KeyVaultFuse
       run: dotnet publish -c Release -r linux-x64 -o ./bin/publish/linux-x64
     - name: Archive x64
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v4.6.2
       with:
         name: linux-x64
         path: ./src/dotnet/KeyVaultFuse/bin/publish/linux-x64
