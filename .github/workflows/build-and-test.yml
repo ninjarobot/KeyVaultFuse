@@ -21,8 +21,6 @@ jobs:
     - uses: actions/checkout@v5.0.0
     - name: Setup .NET
       uses: actions/setup-dotnet@v5.0.0
-      with:
-        dotnet-version: 10.0.403
     - name: Restore dependencies
       run: dotnet restore
       working-directory: ./src/dotnet
@@ -36,7 +34,7 @@ jobs:
       working-directory: ./src/dotnet/KeyVaultFuse
       run: dotnet publish -c Release -r linux-arm64 -o ./bin/publish/linux-arm64
     - name: Archive arm64
-      uses: actions/upload-artifact@v4.6.2
+      uses: actions/upload-artifact@v7.0.2
       with:
         name: linux-arm64
         path: ./src/dotnet/KeyVaultFuse/bin/publish/linux-arm64
@@ -44,7 +42,7 @@ jobs:
       working-directory: ./src/dotnet/KeyVaultFuse
       run: dotnet publish -c Release -r linux-x64 -o ./bin/publish/linux-x64
     - name: Archive x64
-      uses: actions/upload-artifact@v4.6.2
+      uses: actions/upload-artifact@v7.0.2
       with:
         name: linux-x64
         path: ./src/dotnet/KeyVaultFuse/bin/publish/linux-x64
