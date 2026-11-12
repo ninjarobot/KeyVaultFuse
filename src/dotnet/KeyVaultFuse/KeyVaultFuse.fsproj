@@ -27,6 +27,7 @@
 
   <ItemGroup>
     <LinkerArg Include="-v" />
+    <TrimmerRootAssembly Include="FSharp.Core" />
   </ItemGroup>
 
   <ItemGroup>
@@ -39,6 +40,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="FSharp.Core" />
     <PackageReference Include="Azure.Identity" />
     <PackageReference Include="Azure.Security.KeyVault.Certificates" />
     <PackageReference Include="Azure.Security.KeyVault.Keys" />
